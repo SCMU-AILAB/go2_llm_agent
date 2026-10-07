@@ -6,10 +6,13 @@ description 字段决定大模型会不会选中这个工具，写的时候要�
 """
 
 from mock_go2 import MockGo2
+from tool_registry import ToolRegistry
 
 go2 = MockGo2()
+tr = ToolRegistry()
 
-TOOLS_SCHEMA = [
+
+@tr.register(
     {
         "type": "function",
         "function": {
@@ -30,7 +33,13 @@ TOOLS_SCHEMA = [
                 "required": ["speed", "distance"],
             },
         },
-    },
+    }
+)
+def move_forward(speed: float, distance: float) -> str:
+    return go2.move_forward(speed=speed, distance=distance)
+
+
+@tr.register(
     {
         "type": "function",
         "function": {
@@ -52,28 +61,44 @@ TOOLS_SCHEMA = [
                 "required": ["direction", "angle"],
             },
         },
-    },
+    }
+)
+def turn(direction: str, angle: float) -> str:
+    """把转向指令转交给机器狗实现。"""
+    return go2.turn(direction=direction, angle=angle)
+
+
+@tr.register(
     {
         "type": "function",
         "function": {
             "name": "get_battery",
             "description": "查询机器狗当前剩余电量。当用户询问电量、续航，或执行任务前需要确认电力时调用。",
-            "parameters": {"type": "object", "properties": {}, "required": []},
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": [],
+            },
         },
-    },
+    }
+)
+def get_battery() -> str:
+    return go2.get_battery()
+
+
+@tr.register(
     {
         "type": "function",
         "function": {
             "name": "take_photo",
             "description": "让机器狗拍照。当用户说看、看看、看一眼、观察、拍照、拍张照片、前方有什么、画面时，调用本工具。这是唯一能获取视觉信息的工具。",
-            "parameters": {"type": "object", "properties": {}, "required": []},
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": [],
+            },
         },
-    },
-]
-
-TOOL_MAP = {
-    "move_forward": go2.move_forward,
-    "turn": go2.turn,
-    "get_battery": go2.get_battery,
-    "take_photo": go2.take_photo,
-}
+    }
+)
+def take_photo() -> str:
+    return go2.take_photo()
